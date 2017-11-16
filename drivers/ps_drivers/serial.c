@@ -23,5 +23,16 @@ void printSerial(char str[])
 
 void readSerial(void)
 {
-
+	char userInput[30];
+	while(kar !='\r')
+	{
+		while (!XUartPs_IsReceiveData(UART_BASEADDR))
+		{}
+		/* Store the first character in the UART recieve FIFO and echo it */
+		kar = XUartPs_ReadReg(UART_BASEADDR, XUARTPS_FIFO_OFFSET);
+		xil_printf("%c", kar);
+		userInput[i]=kar;
+		i++;
+	}
+		userInput[i]='\0';
 }
