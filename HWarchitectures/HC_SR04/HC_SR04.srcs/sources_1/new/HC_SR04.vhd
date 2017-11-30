@@ -50,7 +50,7 @@ signal counter : STD_LOGIC_VECTOR (10 downto 0) := "00000000000";   --counter de
 signal counter2 : STD_LOGIC_VECTOR (22 downto 0) := "00000000000000000000000";  --counter de la señal "echo"
 signal out_sig : STD_LOGIC_VECTOR (22 downto 0) := "00000000000000000000000";
 
-type states is (WAIT_START, GENERATE_TRIGGER, READ_ECHO, UPDATE_OUTPUT, WAIT_RESET);
+type states is (RESET_STATE, WAIT_START, WAIT_ECHO, READ_ECHO, UPDATE_OUTPUT, WAIT_RESET);
 signal state: states;
 
 begin
@@ -68,6 +68,10 @@ begin
                         
     elsif (clk'event and clk = '1') then
         case state is
+            when RESET_STATE => 
+                counter <= "00000000000";
+                counter2 <= "00000000000000000000000";
+                state <= WAIT_START;    
             when WAIT_START => 
                 if enable = '1' and counter < 1250 then
                     trigger <= '1';
@@ -76,9 +80,9 @@ begin
                     out_sig <= (others => '0');
                 elsif enable = '1' and counter = 1250 then
                     trigger <= '0';
-                    state <= GENERATE_TRIGGER; 
+                    state <= WAIT_ECHO; 
                 end if;
-            when GENERATE_TRIGGER => 
+            when WAIT_ECHO => 
                 if echo = '1' then
                     counter2 <= counter2 + 1;
                     state <= READ_ECHO; 
@@ -95,10 +99,10 @@ begin
                 state <= WAIT_RESET;
             when WAIT_RESET =>
                 if enable = '0' then 
-                    counter <= "00000000000";
-                    counter2 <= "00000000000000000000000";
-                    state <= WAIT_START;
-                end if;                                          
+                    state <= RESET_STATE;
+                end if;
+            when others =>
+                state <= RESET_STATE;                                                          
         end case;
     end if;
 
